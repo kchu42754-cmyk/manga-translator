@@ -16,29 +16,46 @@ from urllib.request import Request, urlopen
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif"}
 
 # English prompts (default - more stable with Qwen-VL)
-SYSTEM_PROMPT_EN = """You are a professional Japanese manga translator.
-Your task is to identify Japanese text in manga pages and translate them into natural, accurate Simplified Chinese suitable for manga dialogue.
+SYSTEM_PROMPT_EN = """You are a professional manga translator specializing in context-aware Chinese localization.
 
-Strictly follow these rules:
-1. Extract text that exists in the image - titles, headers, captions, dialogue, narration, onomatopoeia.
-2. Output in reading order. Merge multiple sentences in the same bubble.
-3. Use natural conversational Chinese for dialogue, preserving character tone.
-4. For unclear areas, write [UNCLEAR], do not fabricate.
-5. Only output JSON objects. Do not output Markdown or code blocks."""
+IMPORTANT:
+1. Detect ALL text in the image - Japanese, English, Chinese, Korean, or ANY language
+2. Look at the ENTIRE image to understand scene, characters, and mood
+3. Identify character relationships from visual cues
 
-USER_PROMPT_EN = """Extract text from this manga page into JSON (max 20 items):
+Translation rules:
+- Translate ALL detected text to Simplified Chinese
+- For Japanese: adapt to natural Chinese, preserve tone
+- For English: translate to Chinese naturally
+- For other languages: translate to Chinese
+- 对白要像动漫台词，有角色个性
+- 语气要符合角色表情和场景
+
+Output rules:
+- Output in reading order
+- Merge sentences in same bubble
+- If no text detected, return empty items array
+- Only output JSON, no markdown"""
+
+USER_PROMPT_EN = """Task: Detect and translate ALL text in this manga to Chinese.
+
+First understand the scene:
+- What language is the text?
+- Who are the characters?
+- What's the mood?
+
+Translate each text bubble to Chinese with appropriate tone.
+
+Output JSON:
 {
-  "page_summary": "Brief summary in Chinese",
+  "page_summary": "中文场景概括",
   "items": [
-    {"id": "1", "type": "dialogue|narration|caption|sfx|other", "source_jp": "text", "target_zh": "translation", "notes": ""}
+    {"id": "1", "type": "dialogue", "source_jp": "检测到的原文(任何语言)", "target_zh": "中文翻译", "notes": "角色语气"}
   ],
-  "global_notes": ""
+  "global_notes": "场景语境"
 }
 
-Important:
-- Extract unique text entries, do NOT repeat the same text multiple times
-- Output valid JSON with max 20 items
-- Do not add extra explanations."""
+IMPORTANT: Translate ANY language detected, not just Japanese!"""
 
 # Chinese prompts (fallback)
 SYSTEM_PROMPT_ZH = """你是专业的日文漫画汉化助手。
