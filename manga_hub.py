@@ -468,7 +468,7 @@ def api_translate() -> Any:
     model_preset = request.form.get("model_preset", SERVER_OPTIONS["model_preset"])
     start_if_needed = request.form.get("start_if_needed", "true").lower() != "false"
     timeout = int(request.form.get("timeout", SERVER_OPTIONS["startup_timeout"]))
-    max_tokens = int(request.form.get("max_tokens", 1800))
+    max_tokens = int(request.form.get("max_tokens", 4000))
 
     if model_preset not in {"7b", "30b"}:
         return jsonify({"ok": False, "error": "Invalid model preset."}), 400

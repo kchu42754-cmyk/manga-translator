@@ -474,7 +474,7 @@ async function startTranslation() {
   formData.append("model_preset", elements.modelPreset.value);
   formData.append("start_if_needed", elements.autoStartToggle.checked ? "true" : "false");
   formData.append("timeout", "300");
-  formData.append("max_tokens", "1800");
+  formData.append("max_tokens", "4000");
 
   const shouldUseCrop = !!state.crop && (state.files.length === 1 || elements.applyCropAllToggle.checked);
   if (shouldUseCrop) {
