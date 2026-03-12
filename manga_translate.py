@@ -15,7 +15,33 @@ from urllib.request import Request, urlopen
 
 IMAGE_SUFFIXES = {".png", ".jpg", ".jpeg", ".webp", ".bmp", ".gif"}
 
-SYSTEM_PROMPT = """你是专业的日文漫画汉化助手。
+# English prompts (default - more stable with Qwen-VL)
+SYSTEM_PROMPT_EN = """You are a professional Japanese manga translator.
+Your task is to identify Japanese text in manga pages and translate them into natural, accurate Simplified Chinese suitable for manga dialogue.
+
+Strictly follow these rules:
+1. Extract text that exists in the image - titles, headers, captions, dialogue, narration, onomatopoeia.
+2. Output in reading order. Merge multiple sentences in the same bubble.
+3. Use natural conversational Chinese for dialogue, preserving character tone.
+4. For unclear areas, write [UNCLEAR], do not fabricate.
+5. Only output JSON objects. Do not output Markdown or code blocks."""
+
+USER_PROMPT_EN = """Extract text from this manga page into JSON (max 20 items):
+{
+  "page_summary": "Brief summary in Chinese",
+  "items": [
+    {"id": "1", "type": "dialogue|narration|caption|sfx|other", "source_jp": "text", "target_zh": "translation", "notes": ""}
+  ],
+  "global_notes": ""
+}
+
+Important:
+- Extract unique text entries, do NOT repeat the same text multiple times
+- Output valid JSON with max 20 items
+- Do not add extra explanations."""
+
+# Chinese prompts (fallback)
+SYSTEM_PROMPT_ZH = """你是专业的日文漫画汉化助手。
 你的任务是识别漫画页面中的日文文本，并翻译成自然、准确、适合漫画对白的简体中文。
 
 请严格遵守这些规则：
@@ -27,7 +53,7 @@ SYSTEM_PROMPT = """你是专业的日文漫画汉化助手。
 6. 如果图片里没有可辨认的日文文字，必须返回空的 items 数组，不要编造对白。
 7. 只输出 JSON 对象，不要输出 Markdown，不要输出代码块。"""
 
-USER_PROMPT = """请把这页漫画整理成以下 JSON 结构：
+USER_PROMPT_ZH = """请把这页漫画整理成以下 JSON 结构：
 {
   "page_summary": "用一句中文概括本页内容；如果没有可辨认文字，写 未识别到可翻译文本",
   "items": [
@@ -47,6 +73,10 @@ USER_PROMPT = """请把这页漫画整理成以下 JSON 结构：
 - items 必须按阅读顺序排列。
 - 如果图片中没有可辨认日文，请返回 items: []。
 - 不要额外解释。"""
+
+# Default to English for stability (Qwen-VL has encoding issues with non-English prompts)
+SYSTEM_PROMPT = SYSTEM_PROMPT_EN
+USER_PROMPT = USER_PROMPT_EN
 
 
 def parse_args() -> argparse.Namespace:
@@ -398,7 +428,7 @@ def run_translation_job(
     endpoint: str,
     model: str | None = None,
     temperature: float = 0.1,
-    max_tokens: int = 1800,
+    max_tokens: int = 4000,
     timeout: int = 180,
     overwrite: bool = False,
     progress_callback: Any | None = None,
